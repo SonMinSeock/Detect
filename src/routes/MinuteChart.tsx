@@ -36,7 +36,7 @@ const Tab = styled.div<{isActive: boolean}>`
   color: ${props => props.isActive ? "red" : "black"};
 `;
 
-function Chart() {
+function MinuteChart() {
   const hourMatch = useRouteMatch(`/hour`);
   const minuteMatch = useRouteMatch(`/minute`);
 
@@ -98,34 +98,16 @@ function Chart() {
               labels: ["adult", "child", "stroller"],
               xaxis: {
                 categories: [
-                  "1h",
-                  "2h",
-                  "3h",
-                  "4h",
-                  "5h",
-                  "6h",
-                  "7h",
-                  "8h",
-                  "9h",
-                  "10h",
-                  "11h",
-                  "12h",
-                  "13h",
-                  "14h",
-                  "15h",
-                  "16h",
-                  "17h",
-                  "18h",
-                  "19h",
-                  "20h",
-                  "21h",
-                  "22h",
-                  "23h",
-                  "24h",
+                  "10m",
+                  "20m",
+                  "30m",
+                  "40m",
+                  "50m",
+                  "60m",                  
                 ],
               },
               title: {
-                text: "Hours Detect Line Chart",
+                text: "Minute Detect Line Chart",
                 align: 'center',
               },
             }}
@@ -249,4 +231,4 @@ function Chart() {
     </>
   );
 }
-export default Chart;
+export default MinuteChart;
