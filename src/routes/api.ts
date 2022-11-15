@@ -1,18 +1,13 @@
-const BASE_URL = `https://api.coinpaprika.com/v1`;
-const COIN_URL = `https://ohlcv-api.nomadcoders.workers.dev/`
+const BASE_URL = `URL 경로`;
 
-export function fetchCoins() {
+export function fetchDetect() {
     return fetch(`${BASE_URL}/coins`).then((response) => response.json());
 }
 
-export function fetchCoinInfo(coinId: string) {
-    return fetch(`${BASE_URL}/coins/${coinId}`).then((response) => response.json());
-}
-
-export function fetchCoinTickers(coinId: string) {
-    return fetch(`${BASE_URL}/tickers/${coinId}`).then((response) => response.json());
-}
-
-export function fetchCoinHistory(coinId: string) {
-    return fetch(`${COIN_URL}/?coinId=${coinId}`).then((response) => response.json());
+export function exampleFetchDetect() {
+    return {
+        adult: [1, 2, 3, 4, 5, 10, 5, 25, 18, 16, 15, 18, 15, 28, 66, 25, 38, 5, 18, 26, 35, 18, 15, 18],
+        child: [15, 18, 15, 78, 56, 15, 18, 15, 78, 56, 15, 18, 15, 18, 15, 78, 56, 15, 18, 15, 78, 56, 15, 18],
+        stroller: [10, 5, 25, 18, 16, 22, 33, 45, 22, 33, 12, 34, 44, 22, 34, 45, 12, 11, 20, 30, 21, 23, 10, 25],
+    }
 }

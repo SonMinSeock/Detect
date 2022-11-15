@@ -1,7 +1,6 @@
 import React from "react";
 import { useQuery } from "react-query";
 import { NumberLiteralType } from "typescript";
-import { fetchCoinHistory } from "./api";
 import ApexChart from "react-apexcharts";
 import { useRecoilValue } from "recoil";
 import { isDarkAtom } from "../atoms";
