@@ -1,13 +1,44 @@
-const BASE_URL = `URL 경로`;
+const BASE_URL = `URL 경로`; // http://localhost:4000?/detect
 
 export function fetchDetect() {
-    return fetch(`${BASE_URL}/coins`).then((response) => response.json());
+    return fetch(`${BASE_URL}/detect`).then((response) => response.json());
 }
 
 export function exampleFetchDetect() {
-    return {
-        adult: [1, 2, 3, 4, 5, 10, 5, 25, 18, 16, 15, 18, 15, 28, 66, 25, 38, 5, 18, 26, 35, 18, 15, 18],
-        child: [15, 18, 15, 78, 56, 15, 18, 15, 78, 56, 15, 18, 15, 18, 15, 78, 56, 15, 18, 15, 78, 56, 15, 18],
-        stroller: [10, 5, 25, 18, 16, 22, 33, 45, 22, 33, 12, 34, 44, 22, 34, 45, 12, 11, 20, 30, 21, 23, 10, 25],
-    }
+    return [{
+        num: 1,
+        id: 1,
+        date: "2022-10-28 13:10 11:00000",
+        statu: "in"
+    }, {
+        num: 2,
+        id: 1,
+        date: "2022-10-28 13:22 11:00000",
+        statu: "in"
+    }, {
+        num: 3,
+        id: 1,
+        date: "2022-10-28 13:26 11:00000",
+        statu: "in"
+    }, {
+        num: 4,
+        id: 1,
+        date: "2022-10-28 13:33 11:00000",
+        statu: "in"
+    }, {
+        num: 5,
+        id: 1,
+        date: "2022-10-28 13:43 11:00000",
+        statu: "in"
+    }, {
+        num: 6,
+        id: 1,
+        date: "2022-10-28 13:43 11:00000",
+        statu: "in"
+    }, {
+        num: 7,
+        id: 1,
+        date: "2022-10-28 14:33 11:00000",
+        statu: "in"
+    }]
 }

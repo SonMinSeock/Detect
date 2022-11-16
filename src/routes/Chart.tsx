@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { NumberLiteralType } from "typescript";
 import ApexChart from "react-apexcharts";
@@ -37,32 +37,114 @@ const Tab = styled.div<{ isActive: boolean }>`
 `;
 
 interface ItestDetectData {
-  adult: number[];
-  child: number[];
-  stroller: number[];
+  num: number;
+  id: number;
+  date: string;
+  statu: string;
 }
 
 function Chart() {
   const hourMatch = useRouteMatch(`/hour`);
   const minuteMatch = useRouteMatch(`/minute`);
 
-  const [exampleDetectData, setExampleDetectData] = useState<ItestDetectData>();
+  const [exampleDetectData, setExampleDetectData] = useState<ItestDetectData[]>();
   const [loading, setLoading] = useState(true);
+
+  const adultDetectDate = useRef<string[]>([]);
+
+  const [adultCountList, setAdultCountList] = useState<number[]>([]);
+
+  const TEMPLATE_ADULT_DATE = [
+    "0m~5m",
+    "5m~10m",
+    "10m~15m",
+    "15m~20m",
+    "20m~25m",
+    "25m~30m",
+    "30m~35m",
+    "35m~40m",
+    "40m~45m",
+    "50m~55m",
+    "55m~60m"
+  ];
 
   useEffect(() => {
     setExampleDetectData(exampleFetchDetect());
+    minuteSplit();
+    adultDetectCounting();
     setLoading(false);
-  }, []);
+  }, [loading]);
+  
 
+  
   console.log(hourMatch);
   console.log(minuteMatch);
 
   const isDark = useRecoilValue(isDarkAtom);
+
   const value = [
     -0.8, -1.05, -1.06, -1.18, -1.4, -2.2, -2.85, -3.7, -3.96, -4.22, -4.3,
     -4.4, -4.1, -4, -4.1, -3.4, -3.1, -2.8,
   ];
 
+  const minuteSplit = () => {
+    let list: string[] = [];
+    exampleDetectData?.map((adult) => {
+      let tmp = adult.date.split(" ")[1].split(":")[1];
+      console.log(`adult detect minute : ${tmp}`);
+      list = [...list, tmp];
+    });
+    adultDetectDate.current = list;
+  };
+
+  const adultDetectCounting = () => {
+    const tempAdultCountList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    if (adultDetectDate) {
+      adultDetectDate.current.map((minute) => {
+        console.log("s :", minute);
+        if (0 < Number(minute) && Number(minute) <= 5) {
+          // 0~5분 이내 포함
+          tempAdultCountList[0] = tempAdultCountList[0] + 1;
+        }
+        else if (5 < Number(minute) && Number(minute) <= 10) {
+          // 6~10분 포함 ex) 10, 12분 ...,
+          tempAdultCountList[1] = tempAdultCountList[1] + 1;        
+        } else if (10 < Number(minute) && Number(minute) <= 15) {
+          // 11~15분 포함
+          tempAdultCountList[2] = tempAdultCountList[2] + 1;
+        } else if (20 < Number(minute) && Number(minute) <= 25) {
+          // 21~25분 포함
+          tempAdultCountList[3] = tempAdultCountList[3] + 1;
+        } else if (25 < Number(minute) && Number(minute) <= 30) {
+          // 26~30분 포함
+          tempAdultCountList[4] = tempAdultCountList[4] + 1;
+        }  else if (30 < Number(minute) && Number(minute) <= 35) {
+          // 31~35분 포함
+          tempAdultCountList[5] = tempAdultCountList[5] + 1;
+        }  else if (35 < Number(minute) && Number(minute) <= 40) {
+          // 36~40분 포함
+          tempAdultCountList[6] = tempAdultCountList[6] + 1;
+        } else if (40 < Number(minute) && Number(minute) <= 45) {
+          // 41~45분 포함
+          tempAdultCountList[7] = tempAdultCountList[7] + 1;
+        } else if (45 < Number(minute) && Number(minute) <= 50) {
+          // 46~50분 포함
+          tempAdultCountList[8] = tempAdultCountList[8] + 1;
+        } else if (50 < Number(minute) && Number(minute) <= 55) {
+          // 51~55분 포함
+          tempAdultCountList[9] = tempAdultCountList[9] + 1;
+        } else if (55 < Number(minute) && Number(minute) <= 65) {
+          // 51~55분 포함
+          tempAdultCountList[10] = tempAdultCountList[10] + 1;
+        } 
+      });
+    }
+
+    setAdultCountList(tempAdultCountList);
+  };
+
+  
+  console.log(adultCountList);
   return (
     <>
       {loading ? (
@@ -96,15 +178,15 @@ function Chart() {
               series={[
                 {
                   name: "adult",
-                  data: exampleDetectData?.adult ?? [],
+                  data: adultCountList ?? [],
                 },
                 {
                   name: "child",
-                  data: exampleDetectData?.child ?? [],
+                  data: [],
                 },
                 {
                   name: "stroller",
-                  data: exampleDetectData?.stroller ?? [],
+                  data: [],
                 },
               ]}
               options={{
@@ -114,35 +196,10 @@ function Chart() {
                 },
                 labels: ["adult", "child", "stroller"],
                 xaxis: {
-                  categories: [
-                    "1h",
-                    "2h",
-                    "3h",
-                    "4h",
-                    "5h",
-                    "6h",
-                    "7h",
-                    "8h",
-                    "9h",
-                    "10h",
-                    "11h",
-                    "12h",
-                    "13h",
-                    "14h",
-                    "15h",
-                    "16h",
-                    "17h",
-                    "18h",
-                    "19h",
-                    "20h",
-                    "21h",
-                    "22h",
-                    "23h",
-                    "24h",
-                  ],
+                  categories: TEMPLATE_ADULT_DATE,
                 },
                 title: {
-                  text: "Hours Detect Line Chart",
+                  text: "Minutes Detect Line Chart",
                   align: "center",
                 },
               }}
@@ -262,6 +319,7 @@ function Chart() {
               <Link to={`/minute`}>Minute</Link>
             </Tab>
           </TabContainer>
+          <button onClick={adultDetectCounting}>click me</button>
         </ChartContainer>
       )}
     </>
