@@ -6,7 +6,7 @@ import { useRecoilValue } from "recoil";
 import { isDarkAtom } from "../atoms";
 import styled from "styled-components";
 import { Link, useRouteMatch } from "react-router-dom";
-import { exampleFetchDetect } from "./api";
+import { fetchDetect } from "./api";
 
 const ChartContainer = styled.div`
   display: flex;
@@ -47,12 +47,15 @@ function Chart() {
   const hourMatch = useRouteMatch(`/hour`);
   const minuteMatch = useRouteMatch(`/minute`);
 
-  const [exampleDetectData, setExampleDetectData] = useState<ItestDetectData[]>();
+  const [exampleDetectData, setExampleDetectData] =
+    useState<ItestDetectData[]>();
   const [loading, setLoading] = useState(true);
 
   const adultDetectDate = useRef<string[]>([]);
 
   const [adultCountList, setAdultCountList] = useState<number[]>([]);
+
+  const { isLoading, data } = useQuery("detect", fetchDetect);
 
   const TEMPLATE_ADULT_DATE = [
     "0m~5m",
@@ -65,21 +68,19 @@ function Chart() {
     "35m~40m",
     "40m~45m",
     "50m~55m",
-    "55m~60m"
+    "55m~60m",
   ];
 
   useEffect(() => {
-    setExampleDetectData(exampleFetchDetect());
     minuteSplit();
     adultDetectCounting();
     setLoading(false);
-  }, [loading]);
-  
+  }, [isLoading]);
 
-  
   console.log(hourMatch);
   console.log(minuteMatch);
 
+  //console.log("minute : ", data[0]?._date.split("T")[1].split(":")[1]);
   const isDark = useRecoilValue(isDarkAtom);
 
   const value = [
@@ -89,8 +90,8 @@ function Chart() {
 
   const minuteSplit = () => {
     let list: string[] = [];
-    exampleDetectData?.map((adult) => {
-      let tmp = adult.date.split(" ")[1].split(":")[1];
+    data?.map((adult: any) => {
+      let tmp = adult._date.split("T")[1].split(":")[1];
       console.log(`adult detect minute : ${tmp}`);
       list = [...list, tmp];
     });
@@ -105,49 +106,50 @@ function Chart() {
         if (0 < Number(minute) && Number(minute) <= 5) {
           // 0~5분 이내 포함
           tempAdultCountList[0] = tempAdultCountList[0] + 1;
-        }
-        else if (5 < Number(minute) && Number(minute) <= 10) {
+        } else if (5 < Number(minute) && Number(minute) <= 10) {
           // 6~10분 포함 ex) 10, 12분 ...,
-          tempAdultCountList[1] = tempAdultCountList[1] + 1;        
+          tempAdultCountList[1] = tempAdultCountList[1] + 1;
         } else if (10 < Number(minute) && Number(minute) <= 15) {
           // 11~15분 포함
           tempAdultCountList[2] = tempAdultCountList[2] + 1;
+        } else if (15 < Number(minute) && Number(minute) <= 20) {
+          // 16~20분 포함
+          tempAdultCountList[3] = tempAdultCountList[3] + 1;
         } else if (20 < Number(minute) && Number(minute) <= 25) {
           // 21~25분 포함
-          tempAdultCountList[3] = tempAdultCountList[3] + 1;
+          tempAdultCountList[4] = tempAdultCountList[4] + 1;
         } else if (25 < Number(minute) && Number(minute) <= 30) {
           // 26~30분 포함
-          tempAdultCountList[4] = tempAdultCountList[4] + 1;
-        }  else if (30 < Number(minute) && Number(minute) <= 35) {
-          // 31~35분 포함
           tempAdultCountList[5] = tempAdultCountList[5] + 1;
-        }  else if (35 < Number(minute) && Number(minute) <= 40) {
-          // 36~40분 포함
+        } else if (30 < Number(minute) && Number(minute) <= 35) {
+          // 31~35분 포함
           tempAdultCountList[6] = tempAdultCountList[6] + 1;
+        } else if (35 < Number(minute) && Number(minute) <= 40) {
+          // 36~40분 포함
+          tempAdultCountList[7] = tempAdultCountList[7] + 1;
         } else if (40 < Number(minute) && Number(minute) <= 45) {
           // 41~45분 포함
-          tempAdultCountList[7] = tempAdultCountList[7] + 1;
+          tempAdultCountList[8] = tempAdultCountList[8] + 1;
         } else if (45 < Number(minute) && Number(minute) <= 50) {
           // 46~50분 포함
-          tempAdultCountList[8] = tempAdultCountList[8] + 1;
+          tempAdultCountList[9] = tempAdultCountList[9] + 1;
         } else if (50 < Number(minute) && Number(minute) <= 55) {
           // 51~55분 포함
-          tempAdultCountList[9] = tempAdultCountList[9] + 1;
+          tempAdultCountList[10] = tempAdultCountList[10] + 1;
         } else if (55 < Number(minute) && Number(minute) <= 65) {
           // 51~55분 포함
-          tempAdultCountList[10] = tempAdultCountList[10] + 1;
-        } 
+          tempAdultCountList[11] = tempAdultCountList[11] + 1;
+        }
       });
     }
 
     setAdultCountList(tempAdultCountList);
   };
 
-  
-  console.log(adultCountList);
+  console.log("data1 : ", data);
   return (
     <>
-      {loading ? (
+      {isLoading ? (
         <h1>Loading</h1>
       ) : (
         <ChartContainer>
@@ -179,27 +181,19 @@ function Chart() {
                 {
                   name: "adult",
                   data: adultCountList ?? [],
-                },
-                {
-                  name: "child",
-                  data: [],
-                },
-                {
-                  name: "stroller",
-                  data: [],
-                },
+                },           
               ]}
               options={{
                 chart: {
                   height: 500,
                   width: 500,
                 },
-                labels: ["adult", "child", "stroller"],
+                labels: ["adult"],
                 xaxis: {
                   categories: TEMPLATE_ADULT_DATE,
                 },
                 title: {
-                  text: "Minutes Detect Line Chart",
+                  text: "Minutes Adult Detect Line Chart",
                   align: "center",
                 },
               }}
