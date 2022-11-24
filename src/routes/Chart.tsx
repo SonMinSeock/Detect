@@ -9,13 +9,15 @@ import { Link, useRouteMatch } from "react-router-dom";
 import { fetchDetect } from "./api";
 
 const ChartContainer = styled.div`
-  display: flex;
   height: 100vh;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
 `;
 
+const Wrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+`
 const ChartStyle = styled.div`
   display: flex;
   justify-content: center;
@@ -30,10 +32,13 @@ const TabContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: yellow;
 `;
 
-const Tab = styled.div<{ isActive: boolean }>`
-  color: ${(props) => (props.isActive ? "red" : "black")};
+const Tab = styled.div`
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 5px;
 `;
 
 interface ItestDetectData {
@@ -47,8 +52,7 @@ function Chart() {
   const hourMatch = useRouteMatch(`/hour`);
   const minuteMatch = useRouteMatch(`/minute`);
 
-  const [exampleDetectData, setExampleDetectData] =
-    useState<ItestDetectData[]>();
+  const [exampleDetectData, setExampleDetectData] = useState<ItestDetectData[]>();
   const [loading, setLoading] = useState(true);
 
   const adultDetectDate = useRef<string[]>([]);
@@ -56,6 +60,14 @@ function Chart() {
   const [adultCountList, setAdultCountList] = useState<number[]>([]);
 
   const { isLoading, data } = useQuery("detect", fetchDetect);
+
+  const adultListRef = useRef<any[]>([]); // detect_id : 0
+  const childListRef = useRef<any[]>([]); // detect_id : 1
+  const strollerListRef = useRef<any[]>([]); // detect_id : 2
+
+  const [ adultRitio, setAdultRitio ] = useState(0);
+  const [ childRitio, setChildRitio ] = useState(0);
+  const [ strollerRitio, setStrollerRitio ] = useState(0);
 
   const TEMPLATE_ADULT_DATE = [
     "0m~5m",
@@ -72,6 +84,8 @@ function Chart() {
   ];
 
   useEffect(() => {
+    splitDetectData();
+    detectRatio();
     minuteSplit();
     adultDetectCounting();
     setLoading(false);
@@ -88,10 +102,42 @@ function Chart() {
     -4.4, -4.1, -4, -4.1, -3.4, -3.1, -2.8,
   ];
 
+  const splitDetectData = () => {
+    let copyAdult:any[] = [];
+    let copyChild:any[] = [];
+    let copyStroller:any[] = [];
+
+    data?.map((data: any) => {
+      if (data.detect_id === 1) {
+        copyAdult = [...copyAdult, data];        
+      } else if (data.detect_id === 2) {
+        copyChild = [...copyChild, data];        
+      } else if (data.detect_id === 3) {
+        copyStroller = [...copyStroller, data];        
+      }
+    });
+
+    adultListRef.current = copyAdult;
+    childListRef.current = copyChild;
+    strollerListRef.current = copyStroller;
+    
+
+  }
+
+  const detectRatio = () => {
+    const adult = adultListRef.current.length > 0 ? (adultListRef.current.length / (adultListRef.current.length + childListRef.current.length + strollerListRef.current.length)) * 100 : 0;
+    const child = childListRef.current.length > 0 ? (childListRef.current.length / (adultListRef.current.length + childListRef.current.length + strollerListRef.current.length)) * 100 : 0;
+    const stroller = strollerListRef.current.length > 0 ? (strollerListRef.current.length / (adultListRef.current.length + childListRef.current.length + strollerListRef.current.length)) * 100 : 0;
+    // console.log("adult Ratio : ", strollerListRef.current);
+    setAdultRitio(adult);
+    setChildRitio(child);
+    setStrollerRitio(stroller);
+  }
+
   const minuteSplit = () => {
     let list: string[] = [];
-    data?.map((adult: any) => {
-      let tmp = adult._date.split("T")[1].split(":")[1];
+    data?.map((adult: any) => {      
+      let tmp = adult._date.split(":")[1];
       console.log(`adult detect minute : ${tmp}`);
       list = [...list, tmp];
     });
@@ -153,167 +199,165 @@ function Chart() {
         <h1>Loading</h1>
       ) : (
         <ChartContainer>
-          <ChartStyle>
-            <ApexChart
-              type="pie"
-              series={[50, 30, 20]}
-              width={500}
-              height={500}
-              options={{
-                chart: {
-                  height: 500,
-                  width: 500,
-                },
-                labels: ["adult", "child", "stroller"],
-                title: {
-                  text: "Detect Pie Chart",
-                  align: "center",
-                },
-              }}
-            />
-          </ChartStyle>
-          <ChartStyle>
-            <ApexChart
-              type="line"
-              width={500}
-              height={500}
-              series={[
-                {
-                  name: "adult",
-                  data: adultCountList ?? [],
-                },           
-              ]}
-              options={{
-                chart: {
-                  height: 500,
-                  width: 500,
-                },
-                labels: ["adult"],
-                xaxis: {
-                  categories: TEMPLATE_ADULT_DATE,
-                },
-                title: {
-                  text: "Minutes Adult Detect Line Chart",
-                  align: "center",
-                },
-              }}
-            />
-          </ChartStyle>
-          <ChartStyle>
-            <ApexChart
-              type="bar"
-              width={500}
-              height={500}
-              series={[
-                {
-                  name: "In",
-                  data: [
-                    0.4, 0.65, 0.76, 0.88, 1.5, 2.1, 2.9, 3.8, 3.9, 4.2, 4, 4.3,
-                    4.1, 4.2, 4.5, 3.9, 3.5, 3,
-                  ],
-                },
-                {
-                  name: "Out",
-                  data: [
-                    -0.8, -1.05, -1.06, -1.18, -1.4, -2.2, -2.85, -3.7, -3.96,
-                    -4.22, -4.3, -4.4, -4.1, -4, -4.1, -3.4, -3.1, -2.8,
-                  ],
-                },
-              ]}
-              options={{
-                chart: {
-                  type: "bar",
-                  height: 440,
-                  stacked: true,
-                },
-                colors: ["#008FFB", "#FF4560"],
-                plotOptions: {
-                  bar: {
-                    horizontal: true,
-                    barHeight: "80%",
+          <Wrapper>
+            <ChartStyle>
+              <ApexChart
+                type="pie"
+                series={[adultRitio, childRitio, strollerRitio]}
+                width={500}
+                height={500}
+                options={{
+                  chart: {
+                    height: 500,
+                    width: 500,
                   },
-                },
-                dataLabels: {
-                  enabled: false,
-                },
-                stroke: {
-                  width: 1,
-                  colors: ["#fff"],
-                },
-
-                grid: {
+                  labels: ["adult", "child", "stroller"],
+                  title: {
+                    text: "Detect Pie Chart",
+                    align: "center",
+                  },
+                }}
+              />
+            </ChartStyle>
+            <ChartStyle>
+              <ApexChart
+                type="line"
+                width={500}
+                height={500}
+                series={[
+                  {
+                    name: "adult",
+                    data: adultCountList ?? [],
+                  },
+                ]}
+                options={{
+                  chart: {
+                    height: 500,
+                    width: 500,
+                  },
+                  labels: ["adult"],
                   xaxis: {
-                    lines: {
-                      show: false,
-                    },
+                    categories: TEMPLATE_ADULT_DATE,
                   },
-                },
-                yaxis: {
-                  min: -5,
-                  max: 5,
                   title: {
-                    // text: 'Age',
+                    text: "Minutes Adult Detect Line Chart",
+                    align: "center",
                   },
-                },
-                tooltip: {
-                  shared: false,
-                  x: {
-                    formatter: function (val: any) {
-                      return val;
+                }}
+              />
+            </ChartStyle>
+            <ChartStyle>
+              <ApexChart
+                type="bar"
+                width={500}
+                height={500}
+                series={[
+                  {
+                    name: "In",
+                    data: [
+                      0.4, 0.65, 0.76, 0.88, 1.5, 2.1, 2.9, 3.8, 3.9, 4.2, 4,
+                      4.3, 4.1, 4.2, 4.5, 3.9, 3.5, 3,
+                    ],
+                  },
+                  {
+                    name: "Out",
+                    data: [
+                      -0.8, -1.05, -1.06, -1.18, -1.4, -2.2, -2.85, -3.7, -3.96,
+                      -4.22, -4.3, -4.4, -4.1, -4, -4.1, -3.4, -3.1, -2.8,
+                    ],
+                  },
+                ]}
+                options={{
+                  chart: {
+                    type: "bar",
+                    height: 440,
+                    stacked: true,
+                  },
+                  colors: ["#008FFB", "#FF4560"],
+                  plotOptions: {
+                    bar: {
+                      horizontal: true,
+                      barHeight: "80%",
                     },
                   },
-                  y: {
-                    formatter: function (val) {
-                      return Math.abs(val) + "%";
+                  dataLabels: {
+                    enabled: false,
+                  },
+                  stroke: {
+                    width: 1,
+                    colors: ["#fff"],
+                  },
+
+                  grid: {
+                    xaxis: {
+                      lines: {
+                        show: false,
+                      },
                     },
                   },
-                },
-                title: {
-                  text: "In/Out Bar Chart",
-                  align: "center",
-                },
-                xaxis: {
-                  categories: [
-                    "85+",
-                    "80-84",
-                    "75-79",
-                    "70-74",
-                    "65-69",
-                    "60-64",
-                    "55-59",
-                    "50-54",
-                    "45-49",
-                    "40-44",
-                    "35-39",
-                    "30-34",
-                    "25-29",
-                    "20-24",
-                    "15-19",
-                    "10-14",
-                    "5-9",
-                    "0-4",
-                  ],
+                  yaxis: {
+                    min: -5,
+                    max: 5,
+                    title: {
+                      // text: 'Age',
+                    },
+                  },
+                  tooltip: {
+                    shared: false,
+                    x: {
+                      formatter: function (val: any) {
+                        return val;
+                      },
+                    },
+                    y: {
+                      formatter: function (val) {
+                        return Math.abs(val) + "%";
+                      },
+                    },
+                  },
                   title: {
-                    text: "Percent",
+                    text: "In/Out Bar Chart",
+                    align: "center",
                   },
-                  labels: {
-                    formatter: function (val: any) {
-                      return Math.abs(Math.round(val)) + "%";
+                  xaxis: {
+                    categories: [
+                      "85+",
+                      "80-84",
+                      "75-79",
+                      "70-74",
+                      "65-69",
+                      "60-64",
+                      "55-59",
+                      "50-54",
+                      "45-49",
+                      "40-44",
+                      "35-39",
+                      "30-34",
+                      "25-29",
+                      "20-24",
+                      "15-19",
+                      "10-14",
+                      "5-9",
+                      "0-4",
+                    ],
+                    title: {
+                      text: "Percent",
+                    },
+                    labels: {
+                      formatter: function (val: any) {
+                        return Math.abs(Math.round(val)) + "%";
+                      },
                     },
                   },
-                },
-              }}
-            />
-          </ChartStyle>
+                }}
+              />
+            </ChartStyle>
+          </Wrapper>
           <TabContainer>
-            <Tab isActive={hourMatch !== null}>
-              <Link to={`/hour`}>Hour</Link>
-            </Tab>
-            <Tab isActive={minuteMatch !== null}>
-              <Link to={`/minute`}>Minute</Link>
+            <Tab>
+              <Link to={`/detect`}>Show Image</Link>
             </Tab>
           </TabContainer>
-          <button onClick={adultDetectCounting}>click me</button>
         </ChartContainer>
       )}
     </>

@@ -1,7 +1,11 @@
-const BASE_URL = `http://54.180.163.7:8080/v1/member`; // http://localhost:4000?/detect
+const BASE_URL = `http://54.180.163.7:8080`; // http://localhost:4000?/detect
 
 export function fetchDetect() {
-  return fetch(`${BASE_URL}`).then((response) => response.json());
+  return fetch(`${BASE_URL}/v1/member`).then((response) => response.json());
+}
+
+export function fetchDetectImage() {
+  return fetch(`${BASE_URL}/v2/root`).then((response) => response.json());
 }
 
 export function exampleFetchDetect() {
