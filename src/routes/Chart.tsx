@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
-import { NumberLiteralType } from "typescript";
+import { NumberLiteralType, textSpanIntersectsWithPosition } from "typescript";
 import ApexChart from "react-apexcharts";
 import { useRecoilValue } from "recoil";
 import { isDarkAtom } from "../atoms";
@@ -32,7 +32,7 @@ const TabContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: yellow;
+  margin-top : 20px;
 `;
 
 const Tab = styled.div`
@@ -69,6 +69,12 @@ function Chart() {
   const [ childRitio, setChildRitio ] = useState(0);
   const [ strollerRitio, setStrollerRitio ] = useState(0);
 
+  const inRitioRef = useRef<any[]>([]);
+  const outRitioRef = useRef<any[]>([]);
+
+  const [ inRitio, setInRitio ] = useState(0);
+  const [ outRitio, setOutRitio ] = useState(0);
+
   const TEMPLATE_ADULT_DATE = [
     "0m~5m",
     "5m~10m",
@@ -103,35 +109,28 @@ function Chart() {
   ];
 
   const splitDetectData = () => {
-    let copyAdult:any[] = [];
-    let copyChild:any[] = [];
-    let copyStroller:any[] = [];
+    let copyInRitio:any[] = [];
+    let copyOutRitio:any[] = [];
 
     data?.map((data: any) => {
-      if (data.detect_id === 1) {
-        copyAdult = [...copyAdult, data];        
-      } else if (data.detect_id === 2) {
-        copyChild = [...copyChild, data];        
-      } else if (data.detect_id === 3) {
-        copyStroller = [...copyStroller, data];        
+      if (data.statu === "in") {
+        copyInRitio = [...copyInRitio, data];        
+      } else if (data.statu === "out") {
+        copyOutRitio = [...copyOutRitio, data];
       }
     });
 
-    adultListRef.current = copyAdult;
-    childListRef.current = copyChild;
-    strollerListRef.current = copyStroller;
-    
-
+    inRitioRef.current = copyInRitio;
+    outRitioRef.current = copyOutRitio;
   }
 
   const detectRatio = () => {
-    const adult = adultListRef.current.length > 0 ? (adultListRef.current.length / (adultListRef.current.length + childListRef.current.length + strollerListRef.current.length)) * 100 : 0;
-    const child = childListRef.current.length > 0 ? (childListRef.current.length / (adultListRef.current.length + childListRef.current.length + strollerListRef.current.length)) * 100 : 0;
-    const stroller = strollerListRef.current.length > 0 ? (strollerListRef.current.length / (adultListRef.current.length + childListRef.current.length + strollerListRef.current.length)) * 100 : 0;
-    // console.log("adult Ratio : ", strollerListRef.current);
-    setAdultRitio(adult);
-    setChildRitio(child);
-    setStrollerRitio(stroller);
+    const inValue = inRitioRef.current.length > 0 ? (inRitioRef.current.length / (inRitioRef.current.length + outRitioRef.current.length) * 100) : 0;
+    const outValue = outRitioRef.current.length > 0 ? (outRitioRef.current.length / (inRitioRef.current.length + outRitioRef.current.length) * 100) : 0;
+
+    console.log("IN Ratio : ",inRitioRef.current.length);
+    setInRitio(inValue);
+    setOutRitio(outValue);
   }
 
   const minuteSplit = () => {
@@ -203,7 +202,7 @@ function Chart() {
             <ChartStyle>
               <ApexChart
                 type="pie"
-                series={[adultRitio, childRitio, strollerRitio]}
+                series={[inRitio, outRitio]}
                 width={500}
                 height={500}
                 options={{
@@ -211,7 +210,7 @@ function Chart() {
                     height: 500,
                     width: 500,
                   },
-                  labels: ["adult", "child", "stroller"],
+                  labels: ["IN", "OUT"],
                   title: {
                     text: "Detect Pie Chart",
                     align: "center",
@@ -245,113 +244,7 @@ function Chart() {
                   },
                 }}
               />
-            </ChartStyle>
-            <ChartStyle>
-              <ApexChart
-                type="bar"
-                width={500}
-                height={500}
-                series={[
-                  {
-                    name: "In",
-                    data: [
-                      0.4, 0.65, 0.76, 0.88, 1.5, 2.1, 2.9, 3.8, 3.9, 4.2, 4,
-                      4.3, 4.1, 4.2, 4.5, 3.9, 3.5, 3,
-                    ],
-                  },
-                  {
-                    name: "Out",
-                    data: [
-                      -0.8, -1.05, -1.06, -1.18, -1.4, -2.2, -2.85, -3.7, -3.96,
-                      -4.22, -4.3, -4.4, -4.1, -4, -4.1, -3.4, -3.1, -2.8,
-                    ],
-                  },
-                ]}
-                options={{
-                  chart: {
-                    type: "bar",
-                    height: 440,
-                    stacked: true,
-                  },
-                  colors: ["#008FFB", "#FF4560"],
-                  plotOptions: {
-                    bar: {
-                      horizontal: true,
-                      barHeight: "80%",
-                    },
-                  },
-                  dataLabels: {
-                    enabled: false,
-                  },
-                  stroke: {
-                    width: 1,
-                    colors: ["#fff"],
-                  },
-
-                  grid: {
-                    xaxis: {
-                      lines: {
-                        show: false,
-                      },
-                    },
-                  },
-                  yaxis: {
-                    min: -5,
-                    max: 5,
-                    title: {
-                      // text: 'Age',
-                    },
-                  },
-                  tooltip: {
-                    shared: false,
-                    x: {
-                      formatter: function (val: any) {
-                        return val;
-                      },
-                    },
-                    y: {
-                      formatter: function (val) {
-                        return Math.abs(val) + "%";
-                      },
-                    },
-                  },
-                  title: {
-                    text: "In/Out Bar Chart",
-                    align: "center",
-                  },
-                  xaxis: {
-                    categories: [
-                      "85+",
-                      "80-84",
-                      "75-79",
-                      "70-74",
-                      "65-69",
-                      "60-64",
-                      "55-59",
-                      "50-54",
-                      "45-49",
-                      "40-44",
-                      "35-39",
-                      "30-34",
-                      "25-29",
-                      "20-24",
-                      "15-19",
-                      "10-14",
-                      "5-9",
-                      "0-4",
-                    ],
-                    title: {
-                      text: "Percent",
-                    },
-                    labels: {
-                      formatter: function (val: any) {
-                        return Math.abs(Math.round(val)) + "%";
-                      },
-                    },
-                  },
-                }}
-              />
-            </ChartStyle>
+            </ChartStyle>            
           </Wrapper>
           <TabContainer>
             <Tab>

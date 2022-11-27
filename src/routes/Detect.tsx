@@ -15,7 +15,6 @@ function Detect() {
     const Header = styled.div`        
         display: flex;
         width: 100%;
-        background-color: yellow;
         justify-content: center;
         align-items: center;
         padding-top: 30px;
